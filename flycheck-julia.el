@@ -107,7 +107,12 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                :name "julia-lint-client"
                :host 'local
                :service 9999))
-        (query-list '()))
+        (query-list `(("file"            . ,buffer-file-name)
+                      ("code_str"        . ,(buffer-substring-no-properties
+                                             (point-min) (point-max)))
+                      ("ignore_info"     . ,json-false)
+                      ("ignore_warnings" . ,json-false)
+                      ("show_code"       . t))))
     ;; capture the process output
     ;; TODO: find a nicer way to do this (i.e. without
     ;; global variables), this is taken from the following page:
@@ -118,34 +123,22 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; use priority queues?
     (defun keep-output (process output)
       (setq kept (concat kept output)))
+    ;; TODO: make this local don't know how.
     (setq kept "")
     (set-process-filter proc 'keep-output)
-    ;; build the json object
-    ;; TODO: find a way to do this in one single expression
-    ;; this just seems plain stupid but there is no evaluation inside '(...)
-    (setf (alist-get '"show_code"       query-list) t)
-    (setf (alist-get '"ignore_warnings" query-list) json-false)
-    (setf (alist-get '"ignore_info"     query-list) json-false)
-    (setf (alist-get '"code_str"        query-list) (buffer-substring-no-properties
-                                                     (point-min) (point-max)))
-    (setf (alist-get '"file"            query-list) (buffer-file-name))
-    ;; TODO: make this local
-    (setq encoded-query-list (json-encode query-list))
-    ;; (message encoded-query-list)
-    ;; (message (type-of encoded-query-list))
-    (process-send-string proc encoded-query-list)
+
+    (process-send-string proc (json-encode query-list))
+
     ;; TODO: because our process is asynchronous, we need to
     ;; 1. to wait and
     ;; 2. the string is sent in 500 char pieces and the results may arrive in a
     ;; different order.
     ;; TODO: figure out a way to do this completely asynchronous.
-    ;; (sleep-for 0.5)
-    (accept-process-output proc)
-    ;; (message (nth 0 kept))
+    ;; wait a maximum of 1 second
+    (accept-process-output proc 1)
 
-    ;; TODO: change this to be local again
     (flycheck-julia-error-parser
-      (json-read-array-from-string kept)
+      (json-read-from-string kept)
       checker
       (current-buffer))))
 
@@ -163,32 +156,18 @@ BUFFER is the buffer that was checked for errors."
              :checker  checker
              :filename (cdr (assoc 'file (cdr (assoc 'location it))))
              ;; Lint.jl returns 0-based line and column numbers
-             ;; TODO: figure out, why I have to add 2 to the line numbers
-             ;; TODO: these numbers are not right yet!
+             ;; Lint.jl returns only a line in the format [[l, 0], [l, 80]],
+             ;; with l being the line number.
              :line     (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 0))
              :column   (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 1))
              :message  (cdr (assoc 'excerpt it))
-             :level (cond
-                     ((equal (cdr (assoc 'severity it)) "error")   'error)
-                     ((equal (cdr (assoc 'severity it)) "warning") 'warning)
-                     ((equal (cdr (assoc 'severity it)) "info")    'info))))
+             :level    (intern (cdr (assoc 'severity it)))))
           errors))
-
-;; TODO: add this to the json package
-(defun json-read-array-from-string (string)
-  "Read the JSON array contained in STRING and return it."
-  (with-temp-buffer
-    (insert string)
-    (goto-char (point-min))
-    (json-read-array)))
 
 (flycheck-define-generic-checker 'julia-linter
   "A source code linter for Julia using Lint.jl."
   :start     #'flycheck-julia-start-or-query-server
-  :modes     '(julia-mode ess-julia-mode)
-  ;; TODO: I don't think this is necessary.
-  ;; :predicate (lambda () (equal ess-language "julia"))
-  )
+  :modes     '(julia-mode ess-julia-mode))
 
 ;;;###autoload
 (defun flycheck-julia-setup ()
