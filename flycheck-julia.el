@@ -94,9 +94,12 @@ CHECKER and CALLBACK are flycheck requirements."
   (flycheck-julia-server-start))
 
 (defun flycheck-julia-server-query (checker)
-  "Query a lint for the current buffer.
+  "Query a lint.
 
-CHECKER is a flycheck internal."
+Query a lint for the current buffer and return the errors in a
+flycheck compatible format.
+
+CHECKER is 'julia-linter, this is a flycheck internal."
 
   ;; TODO: is it better to have the network process running all the time?
   ;; i.e. is there overhead for using a new process every time this function is run?
@@ -135,17 +138,16 @@ CHECKER is a flycheck internal."
     ;; 1. to wait and
     ;; 2. the string is sent in 500 char pieces and the results may arrive in a
     ;; different order.
-    ;; TODO: change this for something that waits for the process.
-    ;; TODO: figure out a way to do this complete asynchronous.
-    (sleep-for 0.5)
+    ;; TODO: figure out a way to do this completely asynchronous.
+    ;; (sleep-for 0.5)
+    (accept-process-output proc)
     ;; (message (nth 0 kept))
 
     ;; TODO: change this to be local again
-    (setq tmp (flycheck-julia-error-parser
-               (json-read-array-from-string kept)
-               checker
-               (current-buffer))))
-  tmp)
+    (flycheck-julia-error-parser
+      (json-read-array-from-string kept)
+      checker
+      (current-buffer))))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
