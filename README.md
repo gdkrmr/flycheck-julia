@@ -36,6 +36,6 @@ this program.  If not, see http://www.gnu.org/licenses/.
 See [`LICENSE`][license] for details.
 
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg?dummy
-[LICENSE]: https://github.com/gdkrmr/flycheck-julia/blob/master/COPYING
+[LICENSE]: https://github.com/gdkrmr/flycheck-julia/blob/master/LICENSE
 [Flycheck]: http://www.flycheck.org
 [Lint.jl]: https://github.com/tonyhffong/Lint.jl
