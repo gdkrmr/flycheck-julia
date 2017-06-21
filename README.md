@@ -1,10 +1,7 @@
 flycheck-julia — Flycheck for Julia
 ===================================
 
-[![License GPL 3][badge-license]][copying]
-[![MELPA][badge-melpa]](http://melpa.org/#/flycheck-julia)
-[![MELPA Stable][badge-melpa-stable]](http://stable.melpa.org/#/flycheck-julia)
-[![Build Status][badge-travis]](https://travis-ci.org/flycheck/flycheck-julia)
+[![License GPL 3][badge-license]][license]
 
 Add Julia support to [Flycheck][]:
 
@@ -36,14 +33,9 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see http://www.gnu.org/licenses/.
 
-See [`LICENSE`][copying] for details.
+See [`LICENSE`][license] for details.
 
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg?dummy
 [LICENSE]: https://github.com/gdkrmr/flycheck-julia/blob/master/COPYING
-[badge-melpa]: http://melpa.org/packages/flycheck-julia-badge.svg
-[badge-melpa-stable]: http://stable.melpa.org/packages/flycheck-julia-badge.svg
-[badge-travis]: https://travis-ci.org/gkrmr/flycheck-julia.svg?branch=master
 [Flycheck]: http://www.flycheck.org
 [Lint.jl]: https://github.com/tonyhffong/Lint.jl
-[MELPA]: http://melpa.org
-[MELPA Stable]: http://stable.melpa.org
