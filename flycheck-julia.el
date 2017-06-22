@@ -1,12 +1,12 @@
-;;; flycheck-julia.el --- Flycheck: Julia support
+;;; flycheck-julia.el --- Julia support for Flycheck -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017  Guido Kraewmer <guido.kraemer@gmx.de>
+;; Copyright (C) 2017  Guido Kraemer <guido.kraemer@gmx.de>
 
 ;; Author: Guido Kraewmer <guido.kraemer@gmx.de>
 ;; URL: https://github.com/gdkrmr/flycheck-julia
 ;; Keywords: convenience, tools, languages
 ;; Version: 0.1
-;; Package-Requires: ((emacs "25") (flycheck "0.22")  (json))
+;; Package-Requires: ((emacs "25") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -156,7 +156,6 @@ BUFFER is the buffer that was checked for errors."
              :filename (cdr (assoc 'file (cdr (assoc 'location it))))
              ;; Lint.jl returns 0-based line and column numbers
              ;; Lint.jl returns only a line in the format [[l, 0], [l, 80]],
-             ;; with l being the line number.
              :line     (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 0))
              :column   (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 1))
              :message  (cdr (assoc 'excerpt it))
