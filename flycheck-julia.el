@@ -50,7 +50,19 @@
 (require 'flycheck)
 
 
-;; TODO: add config variables for server port and julia executable!
+
+(defgroup flycheck-julia nil
+  "flycheck-julia options")
+
+(defcustom flycheck-julia-executable "julia"
+  "The executable used for the julia process."
+  :type 'string
+  :group 'flycheck-julia)
+
+(defcustom flycheck-julia-port 3423
+  "The port used by the julia server."
+  :type 'integer
+  :group 'flycheck-julia)
 
 (defun flycheck-julia-start-or-query-server (checker callback)
   "Start a Julia syntax check, init the server if necessary.
@@ -79,8 +91,10 @@ CHECKER and CALLBACK are flycheck requirements."
   (start-process-shell-command
    "flycheck-julia-server" "*julia-linter*"
    ;; TODO: use pipes or something different than an open port
-   ;; TODO: make port a variable and choose sensible default
-   "julia -e \'using Lint\; lintserver\(9999\, \"standard-linter-v2\"\)\'"))
+   (concat flycheck-julia-executable
+           " -e \'using Lint\; lintserver\("
+           (number-to-string flycheck-julia-port)
+           "\, \"standard-linter-v2\"\)\'")))
 
 (defun flycheck-julia-server-stop ()
   "Kill the julia lint server."
@@ -104,7 +118,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
   (let ((proc (make-network-process
                :name "julia-lint-client"
                :host 'local
-               :service 9999))
+               :service flycheck-julia-port))
         (query-list `(("file"            . ,buffer-file-name)
                       ("code_str"        . ,(buffer-substring-no-properties
                                              (point-min) (point-max)))
