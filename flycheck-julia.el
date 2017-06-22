@@ -64,9 +64,7 @@ CHECKER and CALLBACK are flycheck requirements."
         (flycheck-julia-server-start)
         (funcall callback 'finished nil))
     (message "server running --- querying")
-    ;; TODO don't use globals here:
-    (setq the-errors (flycheck-julia-server-query checker))
-    (funcall callback 'finished the-errors)))
+    (funcall callback 'finished (flycheck-julia-server-query checker))))
 
 (defun flycheck-julia-server-start ()
   "Start the julia server for linting."
@@ -121,11 +119,12 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; Network processes may be return results in different orders, then we are
     ;; screwed, not sure what to do about this? use named pipes? use sockets?
     ;; use priority queues?
-    (defun keep-output (process output)
-      (setq kept (concat kept output)))
+    (defun flycheck-julia-keep-output (process output)
+      (setq flycheck-julia-proc-output
+            (concat flycheck-julia-proc-output output)))
     ;; TODO: make this local don't know how.
-    (setq kept "")
-    (set-process-filter proc 'keep-output)
+    (setq flycheck-julia-proc-output "")
+    (set-process-filter proc 'flycheck-julia-keep-output)
 
     (process-send-string proc (json-encode query-list))
 
@@ -138,7 +137,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     (accept-process-output proc 1)
 
     (flycheck-julia-error-parser
-      (json-read-from-string kept)
+      (json-read-from-string flycheck-julia-proc-output)
       checker
       (current-buffer))))
 
