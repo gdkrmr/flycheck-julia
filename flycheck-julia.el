@@ -5,7 +5,7 @@
 ;; Author: Guido Kraemer <guido.kraemer@gmx.de>
 ;; URL: https://github.com/gdkrmr/flycheck-julia
 ;; Keywords: convenience, tools, languages
-;; Version: 0.1
+;; Version: 0.0.3
 ;; Package-Requires: ((emacs "25") (flycheck "0.22"))
 
 ;; This file is not part of GNU Emacs.
