@@ -10,11 +10,14 @@ Add Julia support to [Flycheck][]:
 Installation
 ------------
 
-For now manual.
+For now manual, i.e. open flycheck-julia.el in a buffer and evaluate the buffer,
+by `load-file`, or by including it into your load path.
 
 Usage
 -----
 
+Run `M-x flycheck-julia-setup` to add `flycheck-julia` to the flycheck checkers
+or add `(add-to-list 'flycheck-checkers 'julia-linter)` to your configuration.
 Just use Flycheck as usual in Julia Mode buffers. Flycheck will automatically
 use the `flycheck-julia` syntax checker if Julia Mode is enabled.
 
