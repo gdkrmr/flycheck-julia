@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2017  Guido Kraemer <guido.kraemer@gmx.de>
 
-;; Author: Guido Kraewmer <guido.kraemer@gmx.de>
+;; Author: Guido Kraemer <guido.kraemer@gmx.de>
 ;; URL: https://github.com/gdkrmr/flycheck-julia
 ;; Keywords: convenience, tools, languages
 ;; Version: 0.1
