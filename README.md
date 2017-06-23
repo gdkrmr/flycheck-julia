@@ -10,8 +10,13 @@ Add Julia support to [Flycheck][]:
 Installation
 ------------
 
-For now manual, i.e. open flycheck-julia.el in a buffer and evaluate the buffer,
-by `load-file`, or by including it into your load path.
+For now manual:
+
+```elisp
+  (add-to-list 'load-path "/path/to/flycheck-julia")
+  (require 'flycheck-julia)
+  (flycheck-julia-setup)
+```
 
 Usage
 -----
