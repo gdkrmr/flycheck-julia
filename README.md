@@ -2,6 +2,8 @@ flycheck-julia — Flycheck for Julia
 ===================================
 
 [![License GPL 3][badge-license]][license]
+[![MELPA](https://melpa.org/packages/flycheck-julia-badge.svg)](https://melpa.org/#/flycheck-julia)
+[![MELPA Stable](https://stable.melpa.org/packages/flycheck-julia-badge.svg)](https://stable.melpa.org/#/flycheck-julia)
 
 Add Julia support to [Flycheck][]:
 
@@ -10,21 +12,24 @@ Add Julia support to [Flycheck][]:
 Installation
 ------------
 
-For now manual:
+Install `flycheck-julia` from [MELPA][] or [MELPA Stable][]
+and add the following to your `init.el`:
 
 ```elisp
-  (add-to-list 'load-path "/path/to/flycheck-julia")
-  (require 'flycheck-julia)
-  (flycheck-julia-setup)
+(flycheck-julia-setup)
 ```
 
 Usage
 -----
 
-Run `M-x flycheck-julia-setup` to add `flycheck-julia` to the flycheck checkers
-or add `(add-to-list 'flycheck-checkers 'julia-linter)` to your configuration.
-Just use Flycheck as usual in Julia Mode buffers. Flycheck will automatically
-use the `flycheck-julia` syntax checker if Julia Mode is enabled.
+Simply start linting by enabling `flycheck-mode`. If you use
+`flycheck-global-mode` and want `flycheck-julia` enabled automatically, then add
+the following to your `init.del`:
+
+```elisp
+(add-to-list 'flycheck-global-modes 'julia-mode)
+(add-to-list 'flycheck-global-modes 'ess-julia-mode)
+```
 
 License
 -------
@@ -47,3 +52,5 @@ See [`LICENSE`][license] for details.
 [LICENSE]: https://github.com/gdkrmr/flycheck-julia/blob/master/LICENSE
 [Flycheck]: http://www.flycheck.org
 [Lint.jl]: https://github.com/tonyhffong/Lint.jl
+[MELPA]: https://melpa.org
+[MELPA Stable]: https://stable.melpa.org
