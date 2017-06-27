@@ -34,7 +34,7 @@
 ;; Add the following to your init file:
 ;;
 ;;      ;; Enable Flycheck checker
-;;      (flycheck-julia-setup))
+;;      (flycheck-julia-setup)
 ;;
 ;;    (add-hook 'julia-mode-hook #'flycheck-mode)
 ;;
