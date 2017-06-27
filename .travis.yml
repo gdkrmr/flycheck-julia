@@ -1,8 +1,7 @@
 language: julia
 julia:
   - 0.5.2
-  - 0.6
-  - nightly
+  # there is no Lint.jl for 0.6 and nightly yet
 
 sudo: false
 
