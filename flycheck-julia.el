@@ -116,9 +116,10 @@ CHECKER and CALLBACK are flycheck requirements."
   "Kill the julia lint server."
   (kill-process (get-process "flycheck-julia-server")))
 
-(defun flycheck-julia-sever-restart ()
+(defun flycheck-julia-server-restart ()
   "Kill the julia lint server and restart it."
   (flycheck-julia-server-stop)
+  (sleep-for 5)
   (flycheck-julia-server-start))
 
 (defun flycheck-julia-server-query (checker)
