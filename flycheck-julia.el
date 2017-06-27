@@ -52,7 +52,10 @@
 
 
 (defgroup flycheck-julia nil
-  "flycheck-julia options")
+  "flycheck-julia options"
+  :prefix "flycheck-julia"
+  :group 'flycheck
+  :link '(url-link :tag "Github" "https://github.com/gdkrmr/flycheck-julia"))
 
 (defcustom flycheck-julia-executable "julia"
   "The executable used for the julia process."
