@@ -67,6 +67,11 @@
   :type 'integer
   :group 'flycheck-julia)
 
+(defcustom flycheck-julia-max-wait 1
+  "The maximum time to wait for an answer from the server."
+  :type 'number
+  :group 'flycheck-julia)
+
 (defun flycheck-julia-start-or-query-server (checker callback)
   "Start a Julia syntax check, init the server if necessary.
 
@@ -151,10 +156,10 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; different order.
     ;; TODO: figure out a way to do this completely asynchronous.
     ;; wait a maximum of 1 second
-    (accept-process-output proc 1)
+    (accept-process-output proc flycheck-julia-max-wait)
 
     (flycheck-julia-error-parser
-      (json-read-from-string flycheck-julia-proc-output)
+      (json-read-from-string proc-output)
       checker
       (current-buffer))))
 
