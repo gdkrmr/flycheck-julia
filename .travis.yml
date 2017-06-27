@@ -15,14 +15,15 @@ cache:
       - "$HOME/.julia"
 
 env:
-  - EMACS_VERSION=24.5
-  - EMACS_VERSION=25.2
-  - EMACS_VERSION=snapshot EMACSFLAGS='--eval "(setq byte-compile-error-on-warn t)"'
+  matrix:
+    - EMACS_VERSION=24.5
+    - EMACS_VERSION=25.2
+    - EMACS_VERSION=snapshot
 
 matrix:
   fast_finish: true
   allow_failures:
-    -env: EMACS_VERSION=snapshot EMACSFLAGS='--eval "(setq byte-compile-error-on-warn t)"'
+    -env: EMACS_VERSION=snapshot
 
 before_install:
   # Install a proper Emacs for testing
