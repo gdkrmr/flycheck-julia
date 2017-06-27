@@ -22,7 +22,7 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-    -env: EMACS_VERSION=snapshot
+    -env: EMACS_VERSION=snapshot EMACSFLAGS='--eval "(setq byte-compile-error-on-warn t)"'
 
 before_install:
   # Install a proper Emacs for testing
