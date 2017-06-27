@@ -15,10 +15,11 @@ cache:
       - "$HOME/emacs/"
       - ".cask/"
       - "$HOME/.emacs.d/.cask"
+      - "$HOME/.julia"
 
 env:
-  - EMACS_VERSION=24
-  - EMACS_VERSION=25
+  - EMACS_VERSION=24.5
+  - EMACS_VERSION=25.2
   - EMACS_VERSION=snapshot EMACSFLAGS='--eval "(setq byte-compile-error-on-warn t)"'
 
 before_install:
