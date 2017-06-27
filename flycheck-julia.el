@@ -132,20 +132,16 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                                              (point-min) (point-max)))
                       ("ignore_info"     . ,json-false)
                       ("ignore_warnings" . ,json-false)
-                      ("show_code"       . t))))
-    ;; capture the process output
-    ;; TODO: find a nicer way to do this (i.e. without
-    ;; global variables), this is taken from the following page:
-    ;; http://www.math.utah.edu/docs/info/elisp_34.html
+                      ("show_code"       . t)))
+        (proc-output ""))
 
     ;; Network processes may be return results in different orders, then we are
     ;; screwed, not sure what to do about this? use named pipes? use sockets?
     ;; use priority queues?
+    ;; I actually never observed this, so ignoring it for now.
+    ;; TODO: this gives a warning, try to make the warning disappear!
     (defun flycheck-julia-keep-output (process output)
-      (setq flycheck-julia-proc-output
-            (concat flycheck-julia-proc-output output)))
-    ;; TODO: make this local don't know how.
-    (setq flycheck-julia-proc-output "")
+      (setq proc-output (concat proc-output output)))
     (set-process-filter proc 'flycheck-julia-keep-output)
 
     (process-send-string proc (json-encode query-list))
