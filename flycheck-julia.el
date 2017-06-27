@@ -86,6 +86,9 @@ CHECKER and CALLBACK are flycheck requirements."
     (message "server running --- querying")
     (funcall callback 'finished (flycheck-julia-server-query checker))))
 
+;; TODO: make these functions interactive
+;; needs checking, if the server is already running, closing of the linter
+;; buffer, etc...
 (defun flycheck-julia-server-start ()
   "Start the julia server for linting."
   ;; make-process is emacs 25 only:
