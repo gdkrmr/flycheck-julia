@@ -4,8 +4,7 @@ flycheck-julia — Flycheck for Julia
 [![License GPL 3][badge-license]][license]
 [![MELPA](https://melpa.org/packages/flycheck-julia-badge.svg)](https://melpa.org/#/flycheck-julia)
 [![MELPA Stable](https://stable.melpa.org/packages/flycheck-julia-badge.svg)](https://stable.melpa.org/#/flycheck-julia)
-
-Add Julia support to [Flycheck][]:
+[![Build master](https://api.travis-ci.org/gdkrmr/flycheck-julia.svg?branch=master)](https://travis-ci.org/gdkrmr/flycheck-julia)
 
 - Add a `julia` syntax checker using [Lint.jl][]
 
