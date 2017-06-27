@@ -29,12 +29,13 @@
 
 (require 'flycheck-julia)
 (require 'flycheck-ert)
-(require 'ess)
-(require 'julia-mode)
 
-(message "Running tests for flycheck-julia")
+(load "ess-autoloads.el")
+(require 'ess-site)
 
-;; TODO
+(ert-deftest flycheck-julia-dummy-test ()
+  :tags '(dummy)
+  (should t))
 
 (message "DONE")
 

@@ -5,5 +5,4 @@
 
 (development
  (depends-on "ess")
- (depends-on "julia-mode")
- (depends-on "flycheck"))
+ (depends-on "julia-mode"))
