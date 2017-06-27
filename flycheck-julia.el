@@ -78,7 +78,7 @@
 CHECKER and CALLBACK are flycheck requirements."
 
   ;; TODO: use (when ...) here and do the query
-  (if (not (get-process "flycheck-julia-server"))
+  (if (not (flycheck-julia-serverp))
       (progn
         (message "no server --- starting")
         (flycheck-julia-server-start)
@@ -89,6 +89,11 @@ CHECKER and CALLBACK are flycheck requirements."
 ;; TODO: make these functions interactive
 ;; needs checking, if the server is already running, closing of the linter
 ;; buffer, etc...
+
+(defun flycheck-julia-serverp ()
+  "Check if the lint server is up"
+  (get-process "flycheck-julia-server"))
+
 (defun flycheck-julia-server-start ()
   "Start the julia server for linting."
   ;; make-process is emacs 25 only:
