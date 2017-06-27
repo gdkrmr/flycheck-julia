@@ -3,6 +3,8 @@ julia:
   - 0.5.2
   # there is no Lint.jl for 0.6 and nightly yet
 
+# TODO: only test master!
+
 sudo: false
 
 matrix:
