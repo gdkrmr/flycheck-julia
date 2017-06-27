@@ -33,11 +33,28 @@
 (load "ess-autoloads.el")
 (require 'ess-site)
 
-(ert-deftest flycheck-julia-dummy-test ()
-  :tags '(dummy)
-  (should t))
+(ert-deftest flycheck-julia-start-server ()
+  :tags '(server)
+  (flycheck-julia-server-start)
+  (should (flycheck-julia-serverp))
+  (flycheck-julia-server-stop))
 
-(message "DONE")
+(ert-deftest flycheck-julia-kill-server ()
+  :tags '(server)
+  (flycheck-julia-server-start)
+  (sleep-for 5)
+  (flycheck-julia-server-stop)
+  (sleep-for 5)
+  (should (not (flycheck-julia-serverp))))
+
+(ert-deftest flycheck-julia-restart-server ()
+  :tags '(server)
+  (flycheck-julia-server-start)
+  (sleep-for 5)
+  (flycheck-julia-server-restart)
+  (sleep-for 5)
+  (should (flycheck-julia-serverp))
+  (flycheck-julia-server-stop))
 
 (provide 'flycheck-julia-test)
 
