@@ -34,7 +34,7 @@
 ;; Add the following to your init file:
 ;;
 ;;      ;; Enable Flycheck checker
-;;      (flycheck-julia-setup))
+;;      (flycheck-julia-setup)
 ;;
 ;;    (add-hook 'julia-mode-hook #'flycheck-mode)
 ;;
@@ -52,7 +52,10 @@
 
 
 (defgroup flycheck-julia nil
-  "flycheck-julia options")
+  "flycheck-julia options"
+  :prefix "flycheck-julia"
+  :group 'flycheck
+  :link '(url-link :tag "Github" "https://github.com/gdkrmr/flycheck-julia"))
 
 (defcustom flycheck-julia-executable "julia"
   "The executable used for the julia process."
@@ -64,19 +67,32 @@
   :type 'integer
   :group 'flycheck-julia)
 
+(defcustom flycheck-julia-max-wait 1
+  "The maximum time to wait for an answer from the server."
+  :type 'number
+  :group 'flycheck-julia)
+
 (defun flycheck-julia-start-or-query-server (checker callback)
   "Start a Julia syntax check, init the server if necessary.
 
 CHECKER and CALLBACK are flycheck requirements."
 
   ;; TODO: use (when ...) here and do the query
-  (if (not (get-process "flycheck-julia-server"))
+  (if (not (flycheck-julia-serverp))
       (progn
         (message "no server --- starting")
         (flycheck-julia-server-start)
         (funcall callback 'finished nil))
     (message "server running --- querying")
     (funcall callback 'finished (flycheck-julia-server-query checker))))
+
+;; TODO: make these functions interactive
+;; needs checking, if the server is already running, closing of the linter
+;; buffer, etc...
+
+(defun flycheck-julia-serverp ()
+  "Check if the lint server is up"
+  (get-process "flycheck-julia-server"))
 
 (defun flycheck-julia-server-start ()
   "Start the julia server for linting."
@@ -100,9 +116,10 @@ CHECKER and CALLBACK are flycheck requirements."
   "Kill the julia lint server."
   (kill-process (get-process "flycheck-julia-server")))
 
-(defun flycheck-julia-sever-restart ()
+(defun flycheck-julia-server-restart ()
   "Kill the julia lint server and restart it."
   (flycheck-julia-server-stop)
+  (sleep-for 5)
   (flycheck-julia-server-start))
 
 (defun flycheck-julia-server-query (checker)
@@ -124,20 +141,16 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                                              (point-min) (point-max)))
                       ("ignore_info"     . ,json-false)
                       ("ignore_warnings" . ,json-false)
-                      ("show_code"       . t))))
-    ;; capture the process output
-    ;; TODO: find a nicer way to do this (i.e. without
-    ;; global variables), this is taken from the following page:
-    ;; http://www.math.utah.edu/docs/info/elisp_34.html
+                      ("show_code"       . t)))
+        (proc-output ""))
 
     ;; Network processes may be return results in different orders, then we are
     ;; screwed, not sure what to do about this? use named pipes? use sockets?
     ;; use priority queues?
+    ;; I actually never observed this, so ignoring it for now.
+    ;; TODO: this gives a warning, try to make the warning disappear!
     (defun flycheck-julia-keep-output (process output)
-      (setq flycheck-julia-proc-output
-            (concat flycheck-julia-proc-output output)))
-    ;; TODO: make this local don't know how.
-    (setq flycheck-julia-proc-output "")
+      (setq proc-output (concat proc-output output)))
     (set-process-filter proc 'flycheck-julia-keep-output)
 
     (process-send-string proc (json-encode query-list))
@@ -148,10 +161,10 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; different order.
     ;; TODO: figure out a way to do this completely asynchronous.
     ;; wait a maximum of 1 second
-    (accept-process-output proc 1)
+    (accept-process-output proc flycheck-julia-max-wait)
 
     (flycheck-julia-error-parser
-      (json-read-from-string flycheck-julia-proc-output)
+      (json-read-from-string proc-output)
       checker
       (current-buffer))))
 

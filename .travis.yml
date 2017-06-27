@@ -1,0 +1,46 @@
+language: julia
+julia:
+  - 0.5.2
+  # there is no Lint.jl for 0.6 and nightly yet
+
+# TODO: only test master!
+
+sudo: false
+
+cache:
+  - directories:
+      - "$HOME/emacs/"
+      - ".cask/"
+      - "$HOME/.emacs.d/.cask"
+      - "$HOME/.julia"
+
+env:
+  matrix:
+    - EMACS_VERSION=24.5
+    - EMACS_VERSION=25.2
+    - EMACS_VERSION=snapshot
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
+
+before_install:
+  # Install a proper Emacs for testing
+  - export PATH="$HOME/bin:$PATH"
+  - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+  - if [[ -n $EMACS_VERSION ]]; then make -f emacs-travis.mk install_emacs; fi
+  - if [[ -n $EMACS_VERSION ]]; then make -f emacs-travis.mk install_cask; fi
+  - if [[ -n $EMACS_VERSION ]]; then emacs --version; fi
+  # Set up julia
+  - julia -e "Pkg.update()"
+  - julia -e 'Pkg.add("Lint")'
+  - julia -e 'Pkg.build("Lint")'
+
+install:
+  - cask install
+
+script:
+  - make compile
+  - make test
+
