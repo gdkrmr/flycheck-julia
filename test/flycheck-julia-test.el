@@ -58,7 +58,48 @@
   (flycheck-julia-server-restart)
   (sleep-for 5)
   (should (flycheck-julia-serverp))
-  (flycheck-julia-server-stop))
+  (flycheck-julia-server-stop)
+  (sleep-for 5)
+  (kill-buffer "*julia-linter*"))
+
+;; Lint.jl does extensive testing on the correctness of errors, so we only check
+;; that querying the server actually works.
+(ert-deftest flycheck-julia-test-query ()
+  :tags '(query)
+  (sleep-for 5)
+  (flycheck-julia-server-start)
+  (should
+   (with-temp-buffer
+     (insert-string "\ny\n")
+     (ignore-errors
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia)
+       (flycheck-julia-server-query 'flycheck-julia))
+     ;; Print out the contents of the julia server process buffer
+     (sleep-for 5)
+     (let ((oldbuf (current-buffer)))
+       (set-buffer (get-buffer "*julia-linter*"))
+       (message (buffer-substring-no-properties (point-min) (point-max)))
+       (set-buffer oldbuf))
+
+     ;; (sleep-for 5)
+     (cl-search
+      "undeclared symbol"
+      (aref (nth 0 (flycheck-julia-server-query 'flycheck-julia)) 6)))
+
+   )
+  (flycheck-julia-server-stop)
+  (sleep-for 5)
+  (kill-buffer "*julia-linter*"))
 
 (provide 'flycheck-julia-test)
 
