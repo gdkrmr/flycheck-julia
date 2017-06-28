@@ -142,7 +142,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                       ("ignore_info"     . ,json-false)
                       ("ignore_warnings" . ,json-false)
                       ("show_code"       . t)))
-        (proc-output ""))
+        (proc-output nil))
 
     ;; Network processes may be return results in different orders, then we are
     ;; screwed, not sure what to do about this? use named pipes? use sockets?
@@ -164,9 +164,9 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     (accept-process-output proc flycheck-julia-max-wait)
 
     (flycheck-julia-error-parser
-      (json-read-from-string proc-output)
-      checker
-      (current-buffer))))
+     (if proc-output (json-read-from-string proc-output) nil)
+     checker
+     (current-buffer))))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
