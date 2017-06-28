@@ -136,7 +136,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                :name "julia-lint-client"
                :host 'local
                :service flycheck-julia-port))
-        (query-list `(("file"            . ,buffer-file-name)
+        (query-list `(("file"            . ,(if buffer-file-name (buffer-file-name) ""))
                       ("code_str"        . ,(buffer-substring-no-properties
                                              (point-min) (point-max)))
                       ("ignore_info"     . ,json-false)
