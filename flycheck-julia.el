@@ -148,21 +148,19 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; screwed, not sure what to do about this? use named pipes? use sockets?
     ;; use priority queues?
     ;; I actually never observed this, so ignoring it for now.
-    ;; TODO: this gives a warning, try to make the warning disappear!
+    ;; TODO: this gives a compiler warning, try to make the warning disappear!
     (defun flycheck-julia-keep-output (process output)
       (setq proc-output (concat proc-output output)))
     (set-process-filter proc 'flycheck-julia-keep-output)
 
     (process-send-string proc (json-encode query-list))
 
-    ;; TODO: because our process is asynchronous, we need to
+    ;; Because our process is asynchronous, we need to
     ;; 1. to wait and
     ;; 2. the string is sent in 500 char pieces and the results may arrive in a
-    ;; different order.
+    ;; different order. -> I did not observe this behavior until now!
     ;; TODO: figure out a way to do this completely asynchronous.
-    ;; wait a maximum of 1 second
     (accept-process-output proc flycheck-julia-max-wait)
-
     (flycheck-julia-error-parser
      (if proc-output (json-read-from-string proc-output) nil)
      checker
