@@ -46,3 +46,8 @@ script:
   - make compile
   - make test
 
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+    on_start: never
