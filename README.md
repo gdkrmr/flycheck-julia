@@ -6,12 +6,12 @@ flycheck-julia — Flycheck for Julia
 [![MELPA Stable](https://stable.melpa.org/packages/flycheck-julia-badge.svg)](https://stable.melpa.org/#/flycheck-julia)
 [![Build master](https://api.travis-ci.org/gdkrmr/flycheck-julia.svg?branch=master)](https://travis-ci.org/gdkrmr/flycheck-julia)
 
-- Add a `julia` syntax checker using [Lint.jl][]
+- Add a [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
 
 Installation
 ------------
 
-Install `flycheck-julia` from [MELPA][] or [MELPA Stable][]
+Install [flycheck-julia][] from [MELPA][] or [MELPA Stable][]
 and add the following to your `init.el`:
 
 ```elisp
@@ -45,8 +45,11 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program.  If not, see http://www.gnu.org/licenses/.
 
-See [`LICENSE`][license] for details.
+See [LICENSE][] for details.
 
+[Emacs]: https://www.gnu.org/software/emacs/
+[flycheck-julia]: https://github.com/gdkrmr/flycheck-julia
+[Julia]: https://julialang.org
 [badge-license]: https://img.shields.io/badge/license-GPL_3-green.svg?dummy
 [LICENSE]: https://github.com/gdkrmr/flycheck-julia/blob/master/LICENSE
 [Flycheck]: http://www.flycheck.org
