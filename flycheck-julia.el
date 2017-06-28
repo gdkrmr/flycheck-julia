@@ -125,8 +125,8 @@ CHECKER and CALLBACK are flycheck requirements."
 (defun flycheck-julia-server-query (checker)
   "Query a lint.
 
-Query a lint for the current buffer and return the errors in a
-flycheck compatible format.
+Query a lint for the current buffer and return the errors as
+flycheck objects.
 
 CHECKER is 'julia-linter, this is a flycheck internal."
 
