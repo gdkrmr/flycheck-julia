@@ -37,7 +37,9 @@
   :tags '(server)
   (flycheck-julia-server-start)
   (should (flycheck-julia-serverp))
-  (flycheck-julia-server-stop))
+  (flycheck-julia-server-stop)
+  (sleep-for 5)
+  (kill-buffer "*julia-linter*"))
 
 (ert-deftest flycheck-julia-kill-server ()
   :tags '(server)
@@ -45,7 +47,9 @@
   (sleep-for 5)
   (flycheck-julia-server-stop)
   (sleep-for 5)
-  (should (not (flycheck-julia-serverp))))
+  (should (not (flycheck-julia-serverp)))
+  (sleep-for 5)
+  (kill-buffer "*julia-linter*"))
 
 (ert-deftest flycheck-julia-restart-server ()
   :tags '(server)
