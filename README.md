@@ -24,7 +24,7 @@ General instructions
 
 - From [MELPA][] or [MELPA Stable][] install the following packages:
 
-  - [Emacs Speaks Statistics][] or [julia-mode][].
+  - [ess][] or [julia-mode][].
 
   - [flycheck][], detailed instructions can be
     found [here](http://www.flycheck.org/en/latest/user/installation.html).
@@ -123,7 +123,7 @@ See [LICENSE][] for details.
 [Lint.jl]: https://github.com/tonyhffong/Lint.jl
 [MELPA]: https://melpa.org
 [MELPA Stable]: https://stable.melpa.org
-[Emacs Speaks Statistics]: http://ess.r-project.org/Manual/ess.html#Installation
+[ess]: http://ess.r-project.org/Manual/ess.html#Installation
 [julia-mode]: https://github.com/JuliaEditorSupport/julia-emacs/blob/master/julia-mode.el
 [syntax-checking]: http://spacemacs.org/layers/+checkers/syntax-checking/README.html
 [ess]: http://spacemacs.org/layers/+lang/ess/README.html
