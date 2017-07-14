@@ -14,7 +14,7 @@ Installation
 General instructions
 -----
 
-- Install `Lint.jl` in Julia
+- Install [Lint.jl][] in [Julia][]
 
   Open julia and run the following commands:
   ```julia
@@ -24,14 +24,14 @@ General instructions
 
 - From [MELPA][] or [MELPA Stable][] install the following packages:
 
-  - [Emacs Speaks Statistics][] or `julia-mode`
+  - [Emacs Speaks Statistics][] or [julia-mode][].
 
-  - [flycheck][], detailed instructions can be found [here](http://www.flycheck.org/en/latest/user/installation.html).
+  - [flycheck][], detailed instructions can be
+    found [here](http://www.flycheck.org/en/latest/user/installation.html).
 
-  - [flycheck-julia][] 
+  - [flycheck-julia][].
 
 - Add the following to your configuration:
-
   ```elisp
   (flycheck-julia-setup)
   ```
@@ -41,46 +41,48 @@ Installing from a fresh emacs install
 
 * Setup your package manager
 
-Add the following to your [init file](http://www.flycheck.org/en/latest/glossary.html#term-init-file):
+  Add the following to
+  your
+  [init file](http://www.flycheck.org/en/latest/glossary.html#term-init-file):
 
-```elisp
-(require 'package)
-(add-to-list 'package-archives '("MELPA Stable" . "https://stable.melpa.org/packages/"))
-(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
-(package-initialize)
-```
+  ```elisp
+  (require 'package)
+  (add-to-list 'package-archives '("MELPA Stable" . "https://stable.melpa.org/packages/"))
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+  (package-initialize)
+  ```
 
 * Install the required packages 
 
-Restart emacs and run `M-x list-packages` or choose `Options -> Manage Packages`
-from the menu and install `flycheck`, `ess`, and `flycheck-julia`.
+  Restart emacs and run `M-x list-packages` or choose `Options -> Manage
+  Packages` from the menu and install `flycheck`, `ess`, and `flycheck-julia`.
 
 * Configure emacs for the use with julia, `flycheck`, and `flycheck-julia`
 
-Add the following lines at the end of your init file:
+  Add the following lines at the end of your init file:
 
-```elisp
-;; loads ess, which contains ess-julia-mode
-(require 'ess-site)
-;; enable flycheck globally
-(add-hook 'after-init-hook #'global-flycheck-mode)
-;; tell flycheck about the julia linter
-(flycheck-julia-setup)
-```
+  ```elisp
+  ;; loads ess, which contains ess-julia-mode
+  (require 'ess-site)
+  ;; enable flycheck globally
+  (add-hook 'after-init-hook #'global-flycheck-mode)
+  ;; tell flycheck about the julia linter
+  (flycheck-julia-setup)
+  ```
 
 Installing when using [Spacemacs][]
 -----
 
-Add the following to your `.spacemacs`:
-- the `syntax-checking` and `ess` layers.
-- to `dotspacemacs-additional-packages` add `flycheck-julia`
-- to the `dotspacemacs/user-config` function add the following lines:
-```elisp
-(flycheck-julia-setup)
-(add-to-list 'flycheck-global-modes 'julia-mode)
-(add-to-list 'flycheck-global-modes 'ess-julia-mode)
-```
-Restart Emacs, this should automatically install `ess`, `flycheck`, and `flycheck-julia`
+- Add the following to your `.spacemacs`:
+  - the `syntax-checking` and `ess` layers.
+  - to `dotspacemacs-additional-packages` add `flycheck-julia`
+  - to the `dotspacemacs/user-config` function add the following lines:
+    ```elisp
+    (flycheck-julia-setup)
+    (add-to-list 'flycheck-global-modes 'julia-mode)
+    (add-to-list 'flycheck-global-modes 'ess-julia-mode)
+    ```
+- Restart Emacs, this should automatically install `ess`, `flycheck`, and `flycheck-julia`
 
 Usage
 -----
@@ -117,3 +119,4 @@ See [LICENSE][] for details.
 [MELPA]: https://melpa.org
 [MELPA Stable]: https://stable.melpa.org
 [Emacs Speaks Statistics]: http://ess.r-project.org/Manual/ess.html#Installation
+[julia-mode]: https://github.com/JuliaEditorSupport/julia-emacs/blob/master/julia-mode.el
