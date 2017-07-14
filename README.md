@@ -39,7 +39,7 @@ General instructions
 Installing from a fresh emacs install
 -----
 
-* Setup your package manager
+- Setup your package manager
 
   Add the following to
   your
@@ -52,12 +52,12 @@ Installing from a fresh emacs install
   (package-initialize)
   ```
 
-* Install the required packages 
+- Install the required packages
 
   Restart emacs and run `M-x list-packages` or choose `Options -> Manage
   Packages` from the menu and install `flycheck`, `ess`, and `flycheck-julia`.
 
-* Configure emacs for the use with julia, `flycheck`, and `flycheck-julia`
+- Configure emacs for the use with `julia`, `flycheck`, and `flycheck-julia`
 
   Add the following lines at the end of your init file:
 
@@ -74,7 +74,7 @@ Installing when using [Spacemacs][]
 -----
 
 - Add the following to your `.spacemacs`:
-  - the `syntax-checking` and `ess` layers.
+  - the [syntax-checking][] and [ess][] layers.
   - to `dotspacemacs-additional-packages` add `flycheck-julia`
   - to the `dotspacemacs/user-config` function add the following lines:
     ```elisp
@@ -87,9 +87,14 @@ Installing when using [Spacemacs][]
 Usage
 -----
 
-If you configured your emacs with the instrucions above, linting of julia files
-should start automatically. If you did not enable `global-flycheck-mode`, you
-can enable linting of julia files by enabling `flycheck-mode`.
+If you configured your Emacs with the instructions above, linting
+of Julia files should start automatically. If you did not enable
+`global-flycheck-mode`, you can enable linting of Julia files by enabling
+`flycheck-mode`.
+
+Interaction with errors is done through `flycheck`, see
+the [manual](http://www.flycheck.org/en/latest/user/quickstart.html) for
+details.
 
 License
 -------
@@ -120,3 +125,5 @@ See [LICENSE][] for details.
 [MELPA Stable]: https://stable.melpa.org
 [Emacs Speaks Statistics]: http://ess.r-project.org/Manual/ess.html#Installation
 [julia-mode]: https://github.com/JuliaEditorSupport/julia-emacs/blob/master/julia-mode.el
+[syntax-checking]: http://spacemacs.org/layers/+checkers/syntax-checking/README.html
+[ess]: http://spacemacs.org/layers/+lang/ess/README.html
