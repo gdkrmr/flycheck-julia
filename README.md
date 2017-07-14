@@ -9,26 +9,74 @@ flycheck-julia — Flycheck for Julia
 - Add a [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
 
 Installation
-------------
+=====
 
-Install [flycheck-julia][] from [MELPA][] or [MELPA Stable][]
-and add the following to your `init.el`:
+General instructions
+-----
+- Install `Lint.jl` in Julia:
+Open julia and run the following commands:
+```julia
+Pkg.update()
+Pkg.add("Lint")
+```
+
+- Install [flycheck][], detailed instructions can be found [here](http://www.flycheck.org/en/latest/user/installation.html).
+
+- Install [flycheck-julia][] from [MELPA][] or [MELPA Stable][]
+and add the following to your configuration:
 
 ```elisp
 (flycheck-julia-setup)
 ```
 
-Usage
+Installing from a fresh emacs install
 -----
 
-Simply start linting by enabling `flycheck-mode`. If you use
-`flycheck-global-mode` and want `flycheck-julia` enabled automatically, then add
-the following to your `init.del`:
+### Setup your package manager
+Add the following to your [init file](http://www.flycheck.org/en/latest/glossary.html#term-init-file):
 
 ```elisp
+(require 'package)
+(add-to-list 'package-archives '("MELPA Stable" . "https://stable.melpa.org/packages/"))
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+(package-initialize)
+```
+
+### Install the required packages
+Restart emacs and run `M-x list-packages` or choose `Options -> Manage Packages` from the menu and install `flycheck`, `ess`, and `flycheck-julia`.
+
+### Configure emacs for the use with julia, `flycheck`, and `flycheck-julia`
+Add the following lines at the end of your init file:
+
+```elisp
+;; loads ess, which contains ess-julia-mode
+(require 'ess-site)
+;; enable flycheck globally
+(add-hook 'after-init-hook #'global-flycheck-mode)
+;; tell flycheck about the julia linter
+(flycheck-julia-setup)
+```
+
+Installing when using spacemacs
+-----
+
+Add the following to your `.spacemacs`:
+- the `syntax-checking` and `ess` layers.
+- to `dotspacemacs-additional-packages` add `flycheck-julia`
+- to the `dotspacemacs/user-config` add:
+```elisp
+(flycheck-julia-setup)
 (add-to-list 'flycheck-global-modes 'julia-mode)
 (add-to-list 'flycheck-global-modes 'ess-julia-mode)
 ```
+Restart emacs, this should automatically install `ess`, `flycheck`, and `flycheck-julia`
+
+Usage
+-----
+
+If you configured your emacs with the instrucions above, lining of julia files
+should start automatically. If you did not enable `global-flycheck-mode`, you can
+enable linting of julia files by enabling `flycheck-mode`.
 
 License
 -------
