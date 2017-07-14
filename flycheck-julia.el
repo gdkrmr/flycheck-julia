@@ -96,14 +96,6 @@ CHECKER and CALLBACK are flycheck requirements."
 
 (defun flycheck-julia-server-start ()
   "Start the julia server for linting."
-  ;; make-process is emacs 25 only:
-  ;; this one does not work anywayse:
-  ;; (make-process
-  ;;  :name            "flycheck-julia-server"
-  ;;  :buffer          nil
-  ;;  :command         '("julia" "-e 'using Lint; lintserver(9999, \"standard-linter-v2\")'")
-  ;;  :noquery         t
-  ;;  :stop            nil)
   (start-process-shell-command
    "flycheck-julia-server" "*julia-linter*"
    ;; TODO: use pipes or something different than an open port
