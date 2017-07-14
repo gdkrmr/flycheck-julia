@@ -87,6 +87,18 @@ Installing when using [Spacemacs][]
     ```
 - Restart Emacs, this should automatically install `ess`, `flycheck`, and `flycheck-julia`
 
+Manual Installing
+------
+
+Copy `flycheck-julia.el` somewhere and add the following to your init file:
+```elisp
+(add-to-list 'load-path "/path/to/directory/containing/flycheck-julia.el/file")
+(require 'flycheck-julia)
+(flycheck-julia-setup)
+(add-to-list 'flycheck-global-modes 'julia-mode)
+(add-to-list 'flycheck-global-modes 'ess-julia-mode)
+```
+
 Usage
 -----
 
