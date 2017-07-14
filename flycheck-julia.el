@@ -162,7 +162,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; TODO: figure out a way to do this completely asynchronous.
     (accept-process-output proc flycheck-julia-max-wait)
     (flycheck-julia-error-parser
-     (if proc-output (json-read-from-string proc-output) nil)
+     (when proc-output (json-read-from-string proc-output))
      checker
      (current-buffer))))
 
