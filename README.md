@@ -14,22 +14,27 @@ Installation
 General instructions
 -----
 
-### Install `Lint.jl` in Julia
+- Install `Lint.jl` in Julia
 
-Open julia and run the following commands:
-```julia
-Pkg.update()
-Pkg.add("Lint")
-```
+  Open julia and run the following commands:
+  ```julia
+  Pkg.update()
+  Pkg.add("Lint")
+  ```
 
-- Install [flycheck][], detailed instructions can be found [here](http://www.flycheck.org/en/latest/user/installation.html).
+- From [MELPA][] or [MELPA Stable][] install the following packages:
 
-- Install [flycheck-julia][] from [MELPA][] or [MELPA Stable][]
-and add the following to your configuration:
+  - [Emacs Speaks Statistics][] or `julia-mode`
 
-```elisp
-(flycheck-julia-setup)
-```
+  - [flycheck][], detailed instructions can be found [here](http://www.flycheck.org/en/latest/user/installation.html).
+
+  - [flycheck-julia][] 
+
+- Add the following to your configuration:
+
+  ```elisp
+  (flycheck-julia-setup)
+  ```
 
 Installing from a fresh emacs install
 -----
@@ -111,3 +116,4 @@ See [LICENSE][] for details.
 [Lint.jl]: https://github.com/tonyhffong/Lint.jl
 [MELPA]: https://melpa.org
 [MELPA Stable]: https://stable.melpa.org
+[Emacs Speaks Statistics]: http://ess.r-project.org/Manual/ess.html#Installation
