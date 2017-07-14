@@ -25,7 +25,6 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: EMACS_VERSION=snapshot
-    - julia: 0.6
 
 before_install:
   # Install a proper Emacs for testing
