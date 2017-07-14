@@ -57,6 +57,9 @@ Installing from a fresh emacs install
   Restart emacs and run `M-x list-packages` or choose `Options -> Manage
   Packages` from the menu and install `flycheck`, `ess`, and `flycheck-julia`.
 
+  In the `*Packages*` buffer you can select packages by pressing `i` and install
+  all selected packages by pressing `x` or simply use the mouse for interaction.
+
 - Configure emacs for the use with `julia`, `flycheck`, and `flycheck-julia`
 
   Add the following lines at the end of your init file:

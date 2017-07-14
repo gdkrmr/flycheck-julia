@@ -36,8 +36,6 @@
 ;;      ;; Enable Flycheck checker
 ;;      (flycheck-julia-setup)
 ;;
-;;    (add-hook 'julia-mode-hook #'flycheck-mode)
-;;
 ;; # Usage
 ;;
 ;; Just use Flycheck as usual in julia-mode buffers. Flycheck will
