@@ -6,7 +6,7 @@ flycheck-julia — Flycheck for Julia
 [![MELPA Stable](https://stable.melpa.org/packages/flycheck-julia-badge.svg)](https://stable.melpa.org/#/flycheck-julia)
 [![Build master](https://api.travis-ci.org/gdkrmr/flycheck-julia.svg?branch=master)](https://travis-ci.org/gdkrmr/flycheck-julia)
 
-- Add a [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
+A [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
 
 Installation
 =====
@@ -48,7 +48,9 @@ Installing from a fresh emacs install
   ```elisp
   (require 'package)
   (add-to-list 'package-archives '("MELPA Stable" . "https://stable.melpa.org/packages/"))
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+  ;; If you want always the latest versions uncomment the following line:
+  ;; (add-to-list 'package-archives '("MELPA" . "https://melpa.org/packages/"))
+  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
   (package-initialize)
   ```
 
