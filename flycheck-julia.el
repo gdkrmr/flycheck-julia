@@ -97,6 +97,7 @@ CHECKER and CALLBACK are flycheck requirements."
   (start-process-shell-command
    "flycheck-julia-server" "*julia-linter*"
    ;; TODO: use pipes or something different than an open port
+   ;; TODO: decide how too handle query on exit (set-process-query-on-exit-flag)
    (concat flycheck-julia-executable
            " -e \'using Lint\; lintserver\("
            (number-to-string flycheck-julia-port)
