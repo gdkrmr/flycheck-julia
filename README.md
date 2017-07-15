@@ -6,7 +6,7 @@ flycheck-julia — Flycheck for Julia
 [![MELPA Stable](https://stable.melpa.org/packages/flycheck-julia-badge.svg)](https://stable.melpa.org/#/flycheck-julia)
 [![Build master](https://api.travis-ci.org/gdkrmr/flycheck-julia.svg?branch=master)](https://travis-ci.org/gdkrmr/flycheck-julia)
 
-- Add a [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
+A [Julia][] syntax checker for [Emacs][] and [Flycheck][] using [Lint.jl][]
 
 Installation
 =====
