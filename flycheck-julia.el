@@ -70,7 +70,7 @@
 ;;   :type 'number
 ;;   :group 'flycheck-julia)
 
-(defcustom flycheck-julia-max-tries 500
+(defcustom flycheck-julia-max-tries 5000
   "The maximum number of tries to complete the json object from the server"
   :type 'integer
   :group 'flycheck-julia)
@@ -79,49 +79,30 @@
 ;; TODO: Find out if this is possible without a global value
 (setq flycheck-julia-proc-output "")
 (setq flycheck-julia-server-proc nil)
-(setq flycheck-julia-client-proc nil)
 
 (defun flycheck-julia-server-p ()
   "Check if the Lint server is up, returns the process or nil"
-  (get-process "flycheck-julia-server"))
-
-(defun flycheck-julia-client-p ()
-  "Check if the Lint client is up, returns the process or nil"
-  (get-process "flycheck-julia-client"))
+  (processp flycheck-julia-server-proc))
 
 (defun flycheck-julia-server-start ()
   "If not already running, start the Julia server for linting."
   (if (not (flycheck-julia-server-p))
-      (start-process-shell-command
-       "flycheck-julia-server" "*julia-linter*"
-       ;; TODO: use pipes or something different than an open port
-       ;; TODO: decide how too handle query on exit (set-process-query-on-exit-flag)
-       (concat flycheck-julia-executable
-               " -e \'using Lint\; lintserver\("
-               (number-to-string flycheck-julia-port)
-               "\, \"standard-linter-v2\"\)\'"))))
-
-(defun flycheck-julia-client-start ()
-  "If not already running, start the Julia client for linting"
-  ;; this will error until the server is responsive
-  (ignore-errors
-    (if (not (flycheck-julia-client-p))
-        (make-network-process
-         :name    "flycheck-julia-client"
-         :host    'local
-         :service flycheck-julia-port
-         :filter  (lambda (process output)
-                    (setq flycheck-julia-proc-output (concat flycheck-julia-proc-output output)))))))
+      (setq flycheck-julia-server-proc
+            (start-process-shell-command
+             "flycheck-julia-server" "*julia-linter*"
+             ;; TODO: use pipes or something different than an open port
+             ;; TODO: decide how too handle query on exit (set-process-query-on-exit-flag)
+             (concat flycheck-julia-executable
+                     " -e \'using Lint\; lintserver\("
+                     (number-to-string flycheck-julia-port)
+                     "\, \"standard-linter-v2\"\)\'")))
+    (message "flycheck-julia-server-start: server already running.")))
 
 (defun flycheck-julia-server-stop ()
   "Kill the Julia lint server."
   (interactive)
-  (kill-process (flycheck-julia-server-p)))
-
-(defun flycheck-julia-client-stop ()
-  (interactive)
-  "Kill the Julia lint client."
-  (kill-process (flycheck-julia-client-p)))
+  (delete-process flycheck-julia-server-proc)
+  (setq flycheck-julia-server-proc nil))
 
 (defun flycheck-julia-server-restart ()
   "Kill the Julia lint server and restart it."
@@ -130,38 +111,13 @@
   (sleep-for 5)
   (flycheck-julia-server-start))
 
-(defun flycheck-julia-client-restart ()
-  "Kill the Julia lint client and restart it."
-  (interactive)
-  (flycheck-julia-client-stop)
-  (sleep-for 5)
-  (flycheck-julia-client-start))
-
-(defun flycheck-julia-restart ()
-  "Kill the Julia lint client and server and restart them"
-  (interactive)
-  (flycheck-julia-server-stop)
-  (flycheck-julia-client-stop)
-  (sleep-for 5)
-  (flycheck-julia-server-start)
-  (flycheck-julia-client-start))
-
-(defun flycheck-julia-start ()
-  (interactive)
-  (flycheck-julia-server-start)
-  (flycheck-julia-client-start))
-
-(defun flycheck-julia-stop ()
-  (interactive)
-  (flycheck-julia-client-stop)
-  (flycheck-julia-server-stop))
-
 (defun flycheck-julia-start-or-query-server (checker callback)
-  "Start a Julia syntax check, start the server and client if necessary.
+  "Start a Julia syntax check, start the server if necessary.
 
 CHECKER and CALLBACK are flycheck requirements."
 
-  (flycheck-julia-start)
+  (when (not (flycheck-julia-server-p)) (flycheck-julia-server-start))
+  (print (process-status flycheck-julia-server-proc))
   (funcall callback 'finished (flycheck-julia-server-query checker)))
 
 (defun flycheck-julia-server-query (checker)
@@ -172,18 +128,28 @@ flycheck objects.
 
 CHECKER is 'julia-linter, this is a flycheck internal."
   (message "flycheck-julia-server-query init")
-  (message "client")
-  (print (flycheck-julia-client-p))
   (message "server")
-  (print (flycheck-julia-server-p))
+  (print flycheck-julia-server-proc)
 
-  (let ((proc        (flycheck-julia-client-p))
+  (let ((proc (make-network-process
+               :name    "flycheck-julia-client"
+               :host    'local
+               :service flycheck-julia-port
+               :filter  (lambda (process output)
+                          (setq flycheck-julia-proc-output
+                                (concat flycheck-julia-proc-output output)))
+               :sentinel (lambda (process event)
+                           (message event))))
         (query-list `(("file"            . ,(if buffer-file-name (buffer-file-name) ""))
                       ("code_str"        . ,(buffer-substring-no-properties
                                              (point-min) (point-max)))
                       ("ignore_info"     . ,json-false)
                       ("ignore_warnings" . ,json-false)
-                      ("show_code"       . t))))
+                      ("show_code"       . t)))
+        (num 0)
+        (json-output nil))
+
+    (print (process-status flycheck-julia-server-proc))
 
     (process-send-string proc (json-encode query-list))
 
@@ -192,18 +158,21 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; 2. the string is sent in 500 char pieces and the results may arrive in a
     ;; different order. -> I did not observe this behavior until now!
     ;; TODO: figure out a way to do this completely asynchronous.
-    (message flycheck-julia-proc-output)
-    (setq num 0)
 
     (message "before loop")
 
-    (while (and (not (string-suffix-p "}]"   flycheck-julia-proc-output))
-                (not (string-suffix-p "}]\n" flycheck-julia-proc-output))
-                (< num flycheck-julia-max-tries))
+    (while (and (< num flycheck-julia-max-tries)
+                (not (equal 'closed (process-status proc))))
+        ;; (and (not (string-suffix-p "}]"   flycheck-julia-proc-output))
+        ;;         (not (string-suffix-p "}]\n" flycheck-julia-proc-output))
+        ;;         (< num flycheck-julia-max-tries))
       ;; This appends the output of the process to flycheck-julia-proc-output
       ;; global
-      (setq num (1+ num))
+      ;; (setq num (1+ num))
       (accept-process-output));;proc flycheck-julia-max-wait))
+
+    ;; not sure if this is necessary:
+    (delete-process proc)
 
     (message "after loop")
 
@@ -214,11 +183,12 @@ CHECKER is 'julia-linter, this is a flycheck internal."
     ;; The checks are to avoid the end-of-file error ("") and other json parsing
     ;; errors in case `flycheck-julia-proc-output' does not contain a complete
     ;; json object
-    (setq json-output
-          (when (or (not (equal flycheck-julia-proc-output ""))
-                    (string-suffix-p "}]"   flycheck-julia-proc-output)
-                    (string-suffix-p "}]\n" flycheck-julia-proc-output))
-            (json-read-from-string flycheck-julia-proc-output)))
+    ;; (setq json-output
+    ;;       (when (or (not (equal flycheck-julia-proc-output ""))
+    ;;                 (string-suffix-p "}]"   flycheck-julia-proc-output)
+    ;;                 (string-suffix-p "}]\n" flycheck-julia-proc-output))
+            (json-read-from-string flycheck-julia-proc-output)
+            ;; ))
 
     ;; Reset the global
     (setq flycheck-julia-proc-output "")

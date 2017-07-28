@@ -76,14 +76,11 @@
 
     (message "test 0")
     (print (flycheck-julia-server-query 'flycheck-julia))
-    (print (process-contact (flycheck-julia-client-p)))
     (print (flycheck-julia-client-p))   ;alive
-    ;; (sleep-for 5)
+    (sleep-for 5)
+    ;; Seeping causes the network process to close the connection
     ;; Fails, because process is already dead
-    (print (process-contact (flycheck-julia-client-p)))
-    (print (flycheck-julia-client-p))   ;dead
     (message "test 1")
-    (print (flycheck-julia-client-p))   ;dead
     (print (flycheck-julia-server-query 'flycheck-julia))
 
     (sleep-for 5)
@@ -103,3 +100,10 @@
 (provide 'flycheck-julia-test)
 
 ;;; flycheck-julia-test.el ends here
+
+
+(flycheck-julia-server-p)
+flycheck-julia-server-proc
+(process-status flycheck-julia-server-proc)
+(delete-process flycheck-julia-server-proc)
+()
