@@ -117,83 +117,58 @@
 CHECKER and CALLBACK are flycheck requirements."
 
   (when (not (flycheck-julia-server-p)) (flycheck-julia-server-start))
-  (print (process-status flycheck-julia-server-proc))
-  (funcall callback 'finished (flycheck-julia-server-query checker)))
+  (flycheck-julia-server-query checker callback))
 
-(defun flycheck-julia-server-query (checker)
+(defun flycheck-julia-server-query (checker callback)
   "Query a lint.
 
 Query a lint for the current buffer and return the errors as
 flycheck objects.
 
 CHECKER is 'julia-linter, this is a flycheck internal."
-  (message "flycheck-julia-server-query init")
-  (message "server")
-  (print flycheck-julia-server-proc)
+  (setq flycheck-julia-proc-output "")
 
-  (let ((proc (make-network-process
-               :name    "flycheck-julia-client"
-               :host    'local
-               :service flycheck-julia-port
-               :filter  (lambda (process output)
-                          (setq flycheck-julia-proc-output
-                                (concat flycheck-julia-proc-output output)))
-               :sentinel (lambda (process event)
-                           (message event))))
-        (query-list `(("file"            . ,(if buffer-file-name (buffer-file-name) ""))
-                      ("code_str"        . ,(buffer-substring-no-properties
-                                             (point-min) (point-max)))
-                      ("ignore_info"     . ,json-false)
-                      ("ignore_warnings" . ,json-false)
-                      ("show_code"       . t)))
-        (num 0)
-        (json-output nil))
-
-    (print (process-status flycheck-julia-server-proc))
-
-    (process-send-string proc (json-encode query-list))
-
-    ;; Because our process is asynchronous, we need to
-    ;; 1. to wait and
-    ;; 2. the string is sent in 500 char pieces and the results may arrive in a
-    ;; different order. -> I did not observe this behavior until now!
-    ;; TODO: figure out a way to do this completely asynchronous.
-
-    (message "before loop")
-
-    (while (and (< num flycheck-julia-max-tries)
-                (not (equal 'closed (process-status proc))))
-        ;; (and (not (string-suffix-p "}]"   flycheck-julia-proc-output))
-        ;;         (not (string-suffix-p "}]\n" flycheck-julia-proc-output))
-        ;;         (< num flycheck-julia-max-tries))
-      ;; This appends the output of the process to flycheck-julia-proc-output
-      ;; global
-      ;; (setq num (1+ num))
-      (accept-process-output));;proc flycheck-julia-max-wait))
-
-    ;; not sure if this is necessary:
-    (delete-process proc)
-
-    (message "after loop")
-
-    ;; TODO: remove
-    (message (number-to-string num))
-    (message flycheck-julia-proc-output)
-
-    ;; The checks are to avoid the end-of-file error ("") and other json parsing
-    ;; errors in case `flycheck-julia-proc-output' does not contain a complete
-    ;; json object
-    ;; (setq json-output
-    ;;       (when (or (not (equal flycheck-julia-proc-output ""))
-    ;;                 (string-suffix-p "}]"   flycheck-julia-proc-output)
-    ;;                 (string-suffix-p "}]\n" flycheck-julia-proc-output))
-            (json-read-from-string flycheck-julia-proc-output)
-            ;; ))
-
-    ;; Reset the global
-    (setq flycheck-julia-proc-output "")
-
-    (flycheck-julia-error-parser json-output checker (current-buffer))))
+  (process-send-string
+   (make-network-process
+    :name    "flycheck-julia-client"
+    :host    'local
+    :service flycheck-julia-port
+    :filter  (lambda (process output)
+               (setq flycheck-julia-proc-output
+                     (concat flycheck-julia-proc-output output)))
+    ;; This is where the asynchronous magic is supposed to happen:
+    :sentinel (lambda (process event)
+                (message event)
+                (print (process-status process))
+                ;; TODO: do some error handling
+                ;; (cond ((string= event "connection broken by remote peer\n")
+                ;;       )
+                ;; )
+                ;; retrieve the errors from the server and do the callback
+                ;; (accept-process-output)
+                (delete-process process)
+                (message flycheck-julia-proc-output)
+                ;; return the actual errors
+                (print (flycheck-julia-error-parser
+                        (json-read-from-string flycheck-julia-proc-output)
+                        checker
+                        (current-buffer)))
+                (message "callback:")
+                (print callback)
+                ;; TODO: do some error handling for json-read-from-string
+                (funcall callback
+                         'finished
+                         (flycheck-julia-error-parser (json-read-from-string
+                                                       flycheck-julia-proc-output)
+                                                      checker
+                                                      (current-buffer)))))
+   (json-encode `(("file"            . ,(if buffer-file-name (buffer-file-name) (buffer-name)))
+                  ("code_str"        . ,(buffer-substring-no-properties (point-min) (point-max)))
+                  ("ignore_info"     . ,json-false)
+                  ("ignore_warnings" . ,json-false)
+                  ("show_code"       . t))))
+  ;; return immediately without any errors, leave that to the sentinel
+  (funcall callback 'suspicious "check started"))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
