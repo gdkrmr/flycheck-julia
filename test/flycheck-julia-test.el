@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Test cases Flycheck OCaml.
+;; Test cases Flycheck Julia.
 
 ;;; Code:
 
@@ -36,7 +36,7 @@
 (ert-deftest flycheck-julia-start-server ()
   :tags '(server)
   (flycheck-julia-server-start)
-  (should (flycheck-julia-serverp))
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-stop)
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
@@ -47,7 +47,7 @@
   (sleep-for 5)
   (flycheck-julia-server-stop)
   (sleep-for 5)
-  (should (not (flycheck-julia-serverp)))
+  (should (not (flycheck-julia-server-p)))
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
 
@@ -57,54 +57,48 @@
   (sleep-for 5)
   (flycheck-julia-server-restart)
   (sleep-for 5)
-  (should (flycheck-julia-serverp))
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-stop)
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
 
 ;; Lint.jl does extensive testing on the correctness of errors, so we only check
 ;; that querying the server actually works.
-;; (ert-deftest flycheck-julia-test-query ()
-;;   :tags '(query)
-;;   (flycheck-julia-server-start)
-;;   (sleep-for 15)
-;;   (should
-;;    (with-temp-buffer
-;;      (insert-string "\ny\n")
-;;      (ignore-errors
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia))
+(ert-deftest flycheck-julia-test-query ()
+  :tags '(query)
+  (setq flycheck-julia-max-tries 20000)
+  (flycheck-julia-server-start)
+  (sleep-for 5)
+  (flycheck-julia-client-start)
+  (sleep-for 5)
+  (with-temp-buffer
+    (insert-string "\ny\n")
 
-;;      ;; some debug stuff:
-;;      ;; Print out the contents of the julia server process buffer
-;;      (sleep-for 15)
-;;      (let ((oldbuf (current-buffer)))
-;;        (set-buffer (get-buffer "*julia-linter*"))
-;;        (message (buffer-substring-no-properties (point-min) (point-max)))
-;;        (set-buffer oldbuf))
-;;      (message (buffer-name))
+    (message "test 0")
+    (print (flycheck-julia-server-query 'flycheck-julia))
+    (print (process-contact (flycheck-julia-client-p)))
+    (print (flycheck-julia-client-p))   ;alive
+    ;; (sleep-for 5)
+    ;; Fails, because process is already dead
+    (print (process-contact (flycheck-julia-client-p)))
+    (print (flycheck-julia-client-p))   ;dead
+    (message "test 1")
+    (print (flycheck-julia-client-p))   ;dead
+    (print (flycheck-julia-server-query 'flycheck-julia))
 
-;;      ;; check for the error
-;;      ;; (sleep-for 5)
-;;      (let ((retobj (flycheck-julia-server-query 'flycheck-julia)))
-;;        (sleep-for 5)
-;;        (cl-search
-;;         "undeclared symbol"
-;;         (aref (nth 0 retobj) 6)))))
-;;   ;; cleanup
-;;   (sleep-for 5)
-;;   (flycheck-julia-server-stop)
-;;   (sleep-for 5)
-;;   (kill-buffer "*julia-linter*"))
+    (sleep-for 5)
+    (setq tmp-res nil)
+    (message "test 2")
+    (ignore-errors (progn (setq tmp-res (flycheck-julia-server-query 'flycheck-julia))
+                          (print tmp-res)))
+    (message "test 3")
+    (print tmp-res)
+    (should (cl-search "undeclared symbol" (aref (nth 0 tmp-res) 6))))
+  ;; cleanup
+  (sleep-for 5)
+  (flycheck-julia-server-stop)
+  (sleep-for 5)
+  (kill-buffer "*julia-linter*"))
 
 (provide 'flycheck-julia-test)
 
