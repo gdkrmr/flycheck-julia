@@ -69,14 +69,11 @@
   (setq flycheck-julia-max-tries 20000)
   (flycheck-julia-server-start)
   (sleep-for 5)
-  (flycheck-julia-client-start)
-  (sleep-for 5)
   (with-temp-buffer
     (insert-string "\ny\n")
 
     (message "test 0")
     (print (flycheck-julia-server-query 'flycheck-julia))
-    (print (flycheck-julia-client-p))   ;alive
     (sleep-for 5)
     ;; Seeping causes the network process to close the connection
     ;; Fails, because process is already dead
@@ -86,8 +83,7 @@
     (sleep-for 5)
     (setq tmp-res nil)
     (message "test 2")
-    (ignore-errors (progn (setq tmp-res (flycheck-julia-server-query 'flycheck-julia))
-                          (print tmp-res)))
+    (setq tmp-res (flycheck-julia-server-query 'flycheck-julia))
     (message "test 3")
     (print tmp-res)
     (should (cl-search "undeclared symbol" (aref (nth 0 tmp-res) 6))))
@@ -100,10 +96,3 @@
 (provide 'flycheck-julia-test)
 
 ;;; flycheck-julia-test.el ends here
-
-
-(flycheck-julia-server-p)
-flycheck-julia-server-proc
-(process-status flycheck-julia-server-proc)
-(delete-process flycheck-julia-server-proc)
-()

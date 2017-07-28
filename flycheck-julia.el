@@ -47,8 +47,6 @@
 (require 'json)
 (require 'flycheck)
 
-
-
 (defgroup flycheck-julia nil
   "flycheck-julia options"
   :prefix "flycheck-julia"
@@ -128,47 +126,37 @@ flycheck objects.
 CHECKER is 'julia-linter, this is a flycheck internal."
   (setq flycheck-julia-proc-output "")
 
-  (process-send-string
-   (make-network-process
-    :name    "flycheck-julia-client"
-    :host    'local
-    :service flycheck-julia-port
-    :filter  (lambda (process output)
-               (setq flycheck-julia-proc-output
-                     (concat flycheck-julia-proc-output output)))
-    ;; This is where the asynchronous magic is supposed to happen:
-    :sentinel (lambda (process event)
-                (message event)
-                (print (process-status process))
-                ;; TODO: do some error handling
-                ;; (cond ((string= event "connection broken by remote peer\n")
-                ;;       )
-                ;; )
-                ;; retrieve the errors from the server and do the callback
-                ;; (accept-process-output)
-                (delete-process process)
-                (message flycheck-julia-proc-output)
-                ;; return the actual errors
-                (print (flycheck-julia-error-parser
-                        (json-read-from-string flycheck-julia-proc-output)
-                        checker
-                        (current-buffer)))
-                (message "callback:")
-                (print callback)
-                ;; TODO: do some error handling for json-read-from-string
-                (funcall callback
-                         'finished
-                         (flycheck-julia-error-parser (json-read-from-string
-                                                       flycheck-julia-proc-output)
-                                                      checker
-                                                      (current-buffer)))))
-   (json-encode `(("file"            . ,(if buffer-file-name (buffer-file-name) (buffer-name)))
-                  ("code_str"        . ,(buffer-substring-no-properties (point-min) (point-max)))
-                  ("ignore_info"     . ,json-false)
-                  ("ignore_warnings" . ,json-false)
-                  ("show_code"       . t))))
-  ;; return immediately without any errors, leave that to the sentinel
-  (funcall callback 'suspicious "check started"))
+  (let* ((filter   (lambda (process output)
+                     (setq flycheck-julia-proc-output
+                           (concat flycheck-julia-proc-output output))))
+         ;; This is where the asynchronous magic is supposed to happen:
+         (sentinel (lambda (process event)
+                     (unless (string= event "connection broken by remote peer\n")
+                       (message "connection not closed!"))
+                     (delete-process process)
+                     (condition-case nil
+                         (funcall callback 'finished
+                                  (flycheck-julia-error-parser (json-read-from-string
+                                                                flycheck-julia-proc-output)
+                                                               checker
+                                                               (current-buffer)))
+                       (error (funcall callback 'errored "there was a parsing error")))))
+         (np (ignore-errors (make-network-process :name     "flycheck-julia-client"
+                                                  :host     'local
+                                                  :service  flycheck-julia-port
+                                                  :filter   filter
+                                                  :sentinel sentinel)))
+         (js (json-encode `(("file"            . ,(if buffer-file-name (buffer-file-name) (buffer-name)))
+                            ("code_str"        . ,(buffer-substring-no-properties (point-min) (point-max)))
+                            ("ignore_info"     . ,json-false)
+                            ("ignore_warnings" . ,json-false)
+                            ("show_code"       . t)))))
+    ;; return immediately without any errors, leave that to the sentinel
+    (if np
+        (progn
+          (process-send-string np js)
+          (funcall callback 'suspicious "check started, please ignore this warning!"))
+      (funcall callback 'interrupted))))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
