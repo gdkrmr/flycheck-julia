@@ -71,11 +71,6 @@
 ;;   :type 'number
 ;;   :group 'flycheck-julia)
 
-(defcustom flycheck-julia-max-tries 5000
-  "The maximum number of tries to complete the json object from the server"
-  :type 'integer
-  :group 'flycheck-julia)
-
 ;; This is the variable that is used to receive the data from the server
 ;; TODO: Find out if this is possible without a global value
 (setq flycheck-julia-proc-output "")
