@@ -27,17 +27,20 @@
 ;;; Code:
 
 
+(require 'flycheck)
 (require 'flycheck-julia)
 (require 'flycheck-ert)
 
 (load "ess-autoloads.el")
 (require 'ess-site)
+(flycheck-julia-setup)
+(setq flycheck-julia-port 3457)
 
 (ert-deftest flycheck-julia-start-server ()
   :tags '(server)
   (flycheck-julia-server-start)
   (should (flycheck-julia-server-p))
-  (flycheck-julia-server-stop)
+  (flycheck- julia-server-stop)
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
 
@@ -62,36 +65,63 @@
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
 
-;; Lint.jl does extensive testing on the correctness of errors, so we only check
-;; that querying the server actually works.
-(ert-deftest flycheck-julia-test-query ()
-  :tags '(query)
-  (setq flycheck-julia-max-tries 20000)
-  (flycheck-julia-server-start)
-  (sleep-for 5)
+(ert-deftest flycheck-julia-test-all ()
   (with-temp-buffer
+    (ess-julia-mode)
+    (flycheck-mode)
+    (sleep-for 5)
+    (print (flycheck-may-enable-checker 'flycheck-julia))
+    (print flycheck-enabled-checkers)
+    (flycheck- select-checker 'flycheck-julia)
+    (print (flycheck-may-use-checker 'flycheck-julia))
     (insert-string "\ny\n")
-
-    (message "test 0")
-    (print (flycheck-julia-server-query 'flycheck-julia))
+    (flycheck-buffer)
     (sleep-for 5)
-    ;; Seeping causes the network process to close the connection
-    ;; Fails, because process is already dead
-    (message "test 1")
-    (print (flycheck-julia-server-query 'flycheck-julia))
-
+    (print flycheck-current-errors)
+    (flycheck-buffer)
     (sleep-for 5)
-    (setq tmp-res nil)
-    (message "test 2")
-    (setq tmp-res (flycheck-julia-server-query 'flycheck-julia))
-    (message "test 3")
-    (print tmp-res)
-    (should (cl-search "undeclared symbol" (aref (nth 0 tmp-res) 6))))
-  ;; cleanup
-  (sleep-for 5)
-  (flycheck-julia-server-stop)
+    (print flycheck-current-errors)
+    (sleep-for 5)
+    (print flycheck-current-errors)
+    (sleep-for 5)
+    (print flycheck-current-errors)
+    (sleep-for 5)
+    (print flycheck-current-errors)
+    (should (flycheck-julia-server-p))
+    )
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
+
+;; Lint.jl does extensive testing on the correctness of errors, so we only check
+;; that querying the server actually works.
+;; (ert-deftest flycheck-julia-test-query ()
+;;   :tags '(query)
+;;   (flycheck-julia-server-start)
+;;   (sleep-for 5)
+;;   (with-temp-buffer
+;;     (insert-string "\ny\n")
+;;     (ess-julia-mode)
+;;     (flycheck-mode)
+;;     (sleep-for 15)
+
+;;     (message "test 0")
+;;     (flycheck-buffer)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 15)
+;;     (print flycheck-current-errors)
+;;     ;; Seeping causes the network process to close the connection
+;;     ;; Fails, because process is already dead
+;;     (message "test 1")
+;;     (flycheck-buffer)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 15)
+;;     (print flycheck-current-errors)
+;;     (should (cl-search "undeclared symbol" (aref (nth 0 flycheck-current-errors) 6))))
+;;   ;; cleanup
+;;   (sleep-for 5)
+;;   (flycheck-julia-server-stop)
+;;   (sleep-for 5)
+;;   (kill-buffer "*julia-linter*"))
 
 (provide 'flycheck-julia-test)
 

@@ -170,8 +170,7 @@ CHECKER is 'julia-linter, this is a flycheck internal."
                             ("ignore_warnings" . ,json-false)
                             ("show_code"       . t)))))
     ;; return immediately without any errors, leave that to the sentinel
-    (if np (process-send-string np js)
-      (funcall callback 'interrupted))))
+    (if np (process-send-string np js) (funcall callback 'interrupted))))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
