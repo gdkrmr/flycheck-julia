@@ -33,8 +33,11 @@
 ;;
 ;; Add the following to your init file:
 ;;
-;;      ;; Enable Flycheck checker
+;;      (add-to-list 'load-path "/path/to/directory/containing/flycheck-julia.el/file")
+;;      (require 'flycheck-julia)
 ;;      (flycheck-julia-setup)
+;;      (add-to-list 'flycheck-global-modes 'julia-mode)
+;;      (add-to-list 'flycheck-global-modes 'ess-julia-mode)
 ;;
 ;; # Usage
 ;;
@@ -46,8 +49,6 @@
 
 (require 'json)
 (require 'flycheck)
-
-
 
 (defgroup flycheck-julia nil
   "flycheck-julia options"
@@ -65,97 +66,111 @@
   :type 'integer
   :group 'flycheck-julia)
 
-(defcustom flycheck-julia-max-wait 1
-  "The maximum time to wait for an answer from the server."
-  :type 'number
-  :group 'flycheck-julia)
+;; (defcustom flycheck-julia-max-wait 0.01
+;;   "The maximum time to wait for an answer from the server."
+;;   :type 'number
+;;   :group 'flycheck-julia)
 
-(defun flycheck-julia-start-or-query-server (checker callback)
-  "Start a Julia syntax check, init the server if necessary.
+;; This is the variable that is used to receive the data from the server
+;; TODO: Find out if this is possible without a global value
+(setq flycheck-julia-proc-output "")
+(setq flycheck-julia-server-proc nil)
 
-CHECKER and CALLBACK are flycheck requirements."
-
-  ;; TODO: use (when ...) here and do the query
-  (if (not (flycheck-julia-serverp))
-      (progn
-        (message "no server --- starting")
-        (flycheck-julia-server-start)
-        (funcall callback 'finished nil))
-    (message "server running --- querying")
-    (funcall callback 'finished (flycheck-julia-server-query checker))))
-
-;; TODO: make these functions interactive
-;; needs checking, if the server is already running, closing of the linter
-;; buffer, etc...
-
-(defun flycheck-julia-serverp ()
-  "Check if the lint server is up"
-  (get-process "flycheck-julia-server"))
+(defun flycheck-julia-server-p ()
+  "Check if the Lint server is up, returns the process or nil"
+  (processp flycheck-julia-server-proc))
 
 (defun flycheck-julia-server-start ()
-  "Start the julia server for linting."
-  (start-process-shell-command
-   "flycheck-julia-server" "*julia-linter*"
-   ;; TODO: use pipes or something different than an open port
-   ;; TODO: decide how too handle query on exit (set-process-query-on-exit-flag)
-   (concat flycheck-julia-executable
-           " -e \'using Lint\; lintserver\("
-           (number-to-string flycheck-julia-port)
-           "\, \"standard-linter-v2\"\)\'")))
+  "If not already running, start the Julia server for linting."
+  (if (not (flycheck-julia-server-p))
+      (setq flycheck-julia-server-proc
+            (start-process-shell-command
+             "flycheck-julia-server" "*julia-linter*"
+             ;; TODO: use pipes or something different than an open port
+             ;; TODO: decide how too handle query on exit (set-process-query-on-exit-flag)
+             (concat flycheck-julia-executable
+                     " -e \'using Lint\; lintserver\("
+                     (number-to-string flycheck-julia-port)
+                     "\, \"standard-linter-v2\"\)\'")))
+    (message "flycheck-julia-server-start: server already running.")))
 
 (defun flycheck-julia-server-stop ()
-  "Kill the julia lint server."
-  (kill-process (get-process "flycheck-julia-server")))
+  "Kill the Julia lint server."
+  (interactive)
+  (delete-process flycheck-julia-server-proc)
+  (setq flycheck-julia-server-proc nil))
 
 (defun flycheck-julia-server-restart ()
-  "Kill the julia lint server and restart it."
+  "Kill the Julia lint server and restart it."
+  (interactive)
   (flycheck-julia-server-stop)
   (sleep-for 5)
   (flycheck-julia-server-start))
 
-(defun flycheck-julia-server-query (checker)
+(defun flycheck-julia-start-or-query-server (checker callback)
+  "Start a Julia syntax check, start the server if necessary.
+
+CHECKER and CALLBACK are flycheck requirements."
+
+  (when (not (flycheck-julia-server-p)) (flycheck-julia-server-start))
+  (flycheck-julia-server-query checker callback))
+
+(defun flycheck-julia-server-query (checker callback)
   "Query a lint.
 
 Query a lint for the current buffer and return the errors as
 flycheck objects.
 
 CHECKER is 'julia-linter, this is a flycheck internal."
+  (setq flycheck-julia-proc-output "")
 
-  ;; TODO: is it better to have the network process running all the time?
-  ;; i.e. is there overhead for using a new process every time this function is run?
-  (let ((proc (make-network-process
-               :name "julia-lint-client"
-               :host 'local
-               :service flycheck-julia-port))
-        (query-list `(("file"            . ,(if buffer-file-name (buffer-file-name) ""))
-                      ("code_str"        . ,(buffer-substring-no-properties
-                                             (point-min) (point-max)))
-                      ("ignore_info"     . ,json-false)
-                      ("ignore_warnings" . ,json-false)
-                      ("show_code"       . t)))
-        (proc-output nil))
-
-    ;; Network processes may be return results in different orders, then we are
-    ;; screwed, not sure what to do about this? use named pipes? use sockets?
-    ;; use priority queues?
-    ;; I actually never observed this, so ignoring it for now.
-    ;; TODO: this gives a compiler warning, try to make the warning disappear!
-    (defun flycheck-julia-keep-output (process output)
-      (setq proc-output (concat proc-output output)))
-    (set-process-filter proc 'flycheck-julia-keep-output)
-
-    (process-send-string proc (json-encode query-list))
-
-    ;; Because our process is asynchronous, we need to
-    ;; 1. to wait and
-    ;; 2. the string is sent in 500 char pieces and the results may arrive in a
-    ;; different order. -> I did not observe this behavior until now!
-    ;; TODO: figure out a way to do this completely asynchronous.
-    (accept-process-output proc flycheck-julia-max-wait)
-    (flycheck-julia-error-parser
-     (when proc-output (json-read-from-string proc-output))
-     checker
-     (current-buffer))))
+  (let* ((filter (lambda (process output)
+                   (setq flycheck-julia-proc-output
+                         (concat flycheck-julia-proc-output output))))
+         ;; This is where the asynchronous magic is supposed to happen:
+         ;;
+         ;; the returned string can be:
+         ;;
+         ;; "", i.e the server is not running yet -> not parsed correctly
+         ;;
+         ;; "[]", there are no errors -> parsed correctly to json
+         ;;
+         ;; a complete json object -> there are errors/issues in the file,
+         ;; everything is fine
+         ;;
+         ;; an incomplete json object -> the object was not retrieved correctly
+         ;;
+         ;;Also: this sentinl should only be called if the connection is closed,
+         ;; if it gets with a different message, something is wrong
+         (sentinel (lambda (process event)
+                     (unless (string= event "connection broken by remote peer\n")
+                       (message "connection not closed!"))
+                     (delete-process process)
+                     (if (string= flycheck-julia-proc-output "")
+                         (funcall callback 'interrupted)
+                       (condition-case nil
+                           (funcall callback 'finished
+                                    (flycheck-julia-error-parser
+                                     (json-read-from-string
+                                      flycheck-julia-proc-output)
+                                     checker
+                                     (current-buffer)))
+                         (error (funcall callback 'errored
+                                         "there was a parsing error"))))))
+         ;; if the server is not running yet, this fails because it cannot
+         ;; connect to the server and np will be nil
+         (np (ignore-errors (make-network-process :name     "flycheck-julia-client"
+                                                  :host     'local
+                                                  :service  flycheck-julia-port
+                                                  :filter   filter
+                                                  :sentinel sentinel)))
+         (js (json-encode `(("file"            . ,(if buffer-file-name (buffer-file-name) (buffer-name)))
+                            ("code_str"        . ,(buffer-substring-no-properties (point-min) (point-max)))
+                            ("ignore_info"     . ,json-false)
+                            ("ignore_warnings" . ,json-false)
+                            ("show_code"       . t)))))
+    ;; return immediately without any errors, leave that to the sentinel
+    (if np (process-send-string np js) (funcall callback 'interrupted))))
 
 (defun flycheck-julia-error-parser (errors checker buffer)
   "Parse the error returned from the Julia lint server.
@@ -173,6 +188,7 @@ BUFFER is the buffer that was checked for errors."
              ;; Lint.jl returns 0-based line and column numbers
              ;; Lint.jl returns only a line in the format [[l, 0], [l, 80]],
              :line     (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 0))
+             ;; TODO: simply put 0 here?
              :column   (1+ (aref (aref (cdr (assoc 'position (cdr (assoc 'location it)))) 0) 1))
              :message  (cdr (assoc 'excerpt it))
              :level    (intern (cdr (assoc 'severity it)))))

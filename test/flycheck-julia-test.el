@@ -22,21 +22,25 @@
 
 ;;; Commentary:
 
-;; Test cases Flycheck OCaml.
+;; Test cases Flycheck Julia.
 
 ;;; Code:
 
 
+(require 'flycheck)
 (require 'flycheck-julia)
 (require 'flycheck-ert)
 
 (load "ess-autoloads.el")
 (require 'ess-site)
+(flycheck-julia-setup)
+(setq flycheck-julia-port 3457)
 
 (ert-deftest flycheck-julia-start-server ()
   :tags '(server)
   (flycheck-julia-server-start)
-  (should (flycheck-julia-serverp))
+  (sleep-for 5)
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-stop)
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
@@ -45,9 +49,10 @@
   :tags '(server)
   (flycheck-julia-server-start)
   (sleep-for 5)
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-stop)
   (sleep-for 5)
-  (should (not (flycheck-julia-serverp)))
+  (should (not (flycheck-julia-server-p)))
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
 
@@ -55,51 +60,66 @@
   :tags '(server)
   (flycheck-julia-server-start)
   (sleep-for 5)
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-restart)
   (sleep-for 5)
-  (should (flycheck-julia-serverp))
+  (should (flycheck-julia-server-p))
   (flycheck-julia-server-stop)
   (sleep-for 5)
   (kill-buffer "*julia-linter*"))
+
+;; (ert-deftest flycheck-julia-test-all ()
+;;   (with-temp-buffer
+;;     (ess-julia-mode)
+;;     (flycheck-mode)
+;;     (sleep-for 5)
+;;     (print (flycheck-may-enable-checker 'flycheck-julia))
+;;     (print flycheck-enabled-checkers)
+;;     (flycheck- select-checker 'flycheck-julia)
+;;     (print (flycheck-may-use-checker 'flycheck-julia))
+;;     (insert-string "\ny\n")
+;;     (flycheck-buffer)
+;;     (sleep-for 5)
+;;     (print flycheck-current-errors)
+;;     (flycheck-buffer)
+;;     (sleep-for 5)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 5)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 5)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 5)
+;;     (print flycheck-current-errors)
+;;     (should (flycheck-julia-server-p))
+;;     )
+;;   (sleep-for 5)
+;;   (kill-buffer "*julia-linter*"))
 
 ;; Lint.jl does extensive testing on the correctness of errors, so we only check
 ;; that querying the server actually works.
 ;; (ert-deftest flycheck-julia-test-query ()
 ;;   :tags '(query)
 ;;   (flycheck-julia-server-start)
-;;   (sleep-for 15)
-;;   (should
-;;    (with-temp-buffer
-;;      (insert-string "\ny\n")
-;;      (ignore-errors
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia)
-;;        (sleep-for 15)
-;;        (flycheck-julia-server-query 'flycheck-julia))
+;;   (sleep-for 5)
+;;   (with-temp-buffer
+;;     (insert-string "\ny\n")
+;;     (ess-julia-mode)
+;;     (flycheck-mode)
+;;     (sleep-for 15)
 
-;;      ;; some debug stuff:
-;;      ;; Print out the contents of the julia server process buffer
-;;      (sleep-for 15)
-;;      (let ((oldbuf (current-buffer)))
-;;        (set-buffer (get-buffer "*julia-linter*"))
-;;        (message (buffer-substring-no-properties (point-min) (point-max)))
-;;        (set-buffer oldbuf))
-;;      (message (buffer-name))
-
-;;      ;; check for the error
-;;      ;; (sleep-for 5)
-;;      (let ((retobj (flycheck-julia-server-query 'flycheck-julia)))
-;;        (sleep-for 5)
-;;        (cl-search
-;;         "undeclared symbol"
-;;         (aref (nth 0 retobj) 6)))))
+;;     (message "test 0")
+;;     (flycheck-buffer)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 15)
+;;     (print flycheck-current-errors)
+;;     ;; Seeping causes the network process to close the connection
+;;     ;; Fails, because process is already dead
+;;     (message "test 1")
+;;     (flycheck-buffer)
+;;     (print flycheck-current-errors)
+;;     (sleep-for 15)
+;;     (print flycheck-current-errors)
+;;     (should (cl-search "undeclared symbol" (aref (nth 0 flycheck-current-errors) 6))))
 ;;   ;; cleanup
 ;;   (sleep-for 5)
 ;;   (flycheck-julia-server-stop)
