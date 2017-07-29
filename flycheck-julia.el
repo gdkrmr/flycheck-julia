@@ -129,21 +129,41 @@ flycheck objects.
 CHECKER is 'julia-linter, this is a flycheck internal."
   (setq flycheck-julia-proc-output "")
 
-  (let* ((filter   (lambda (process output)
-                     (setq flycheck-julia-proc-output
-                           (concat flycheck-julia-proc-output output))))
+  (let* ((filter (lambda (process output)
+                   (setq flycheck-julia-proc-output
+                         (concat flycheck-julia-proc-output output))))
          ;; This is where the asynchronous magic is supposed to happen:
+         ;;
+         ;; the returned string can be:
+         ;;
+         ;; "", i.e the server is not running yet -> not parsed correctly
+         ;;
+         ;; "[]", there are no errors -> parsed correctly to json
+         ;;
+         ;; a complete json object -> there are errors/issues in the file,
+         ;; everything is fine
+         ;;
+         ;; an incomplete json object -> the object was not retrieved correctly
+         ;;
+         ;;Also: this sentinl should only be called if the connection is closed,
+         ;; if it gets with a different message, something is wrong
          (sentinel (lambda (process event)
                      (unless (string= event "connection broken by remote peer\n")
                        (message "connection not closed!"))
                      (delete-process process)
-                     (condition-case nil
-                         (funcall callback 'finished
-                                  (flycheck-julia-error-parser (json-read-from-string
-                                                                flycheck-julia-proc-output)
-                                                               checker
-                                                               (current-buffer)))
-                       (error (funcall callback 'errored "there was a parsing error")))))
+                     (if (string= flycheck-julia-proc-output "")
+                         (funcall callback 'interrupted)
+                       (condition-case nil
+                           (funcall callback 'finished
+                                    (flycheck-julia-error-parser
+                                     (json-read-from-string
+                                      flycheck-julia-proc-output)
+                                     checker
+                                     (current-buffer)))
+                         (error (funcall callback 'errored
+                                         "there was a parsing error"))))))
+         ;; if the server is not running yet, this fails because it cannot
+         ;; connect to the server and np will be nil
          (np (ignore-errors (make-network-process :name     "flycheck-julia-client"
                                                   :host     'local
                                                   :service  flycheck-julia-port
